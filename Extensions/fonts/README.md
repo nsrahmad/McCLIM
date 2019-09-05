@@ -50,29 +50,6 @@ it is dependent on the backend which uses `mcclim-native-ttf`).
   CLIM apps are, and the lack of WYSIWYG document editors crying out 
   for perfect text spacing in small fonts, we don't really need this.
 
-## fontconfig
-
-One of this component responsibilities is responsible for
-estabilishing mapping between text-styles predefined by the
-specification and concreete fonts. This is performed by the function
-`autoconfigure-fonts` in the following order:
-
-* Predefined paths are scanned for corresponding DejaVu fonts.
-
-* Otherwise we shell out to `fc-match` looking for the fonts proposed
-  for our family/face preferences.
-
-* If autoconfiguration fails, user is left on his own (he will be
-  asked to configure fonts manually if they are not available).
-
-Each proposed map is tested whenever it may be loaded by
-`zpb-ttf:with-font-loader` and only after that considered valid map,
-otherwise we reject such configuration.
-
-Additionally device fonts implementation in `xrender-fonts` uses
-function `find-fontconfig-font` (the same function we use to shell-out
-during the configuration) if it looks for a particular font.
-
 ## xrender-fonts
 
 Component is responsible for glueing `mcclim-native-ttf` and the
@@ -82,7 +59,4 @@ part of the implementation for `Font listing extension`
 
 We support both `standard-text-style` and `device-font-text-style`. The former
 verifies in `text-style-to-font` if the `text-style` is already registered in
-the system or if we can load it from the provided
-mappings. `device-font-text-style` has a separate method specialization working
-with `make-truetype-font` or `fontconfig-font-name` which tries to find
-requested font `find-fontconfig-font`.
+the system or if we can load it from the provided mappings.

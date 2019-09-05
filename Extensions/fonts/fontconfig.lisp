@@ -22,6 +22,7 @@
 ;;; Paths are relative so we are able to rely on value of a special
 ;;; variable *truetype-font-path*, so if it is changed in
 ;;; `invoke-with-truetype-path-restart' it will be used.
+
 (defvar *families/faces*
   '(((:fix :roman) . "DejaVuSansMono.ttf")
     ((:fix :italic) . "DejaVuSansMono-Oblique.ttf")
@@ -49,7 +50,6 @@
       (setf *truetype-font-path* new-path)
       (invoke-with-truetype-path-restart continuation))))
 
-
 ;;; predefined paths (registers all found ttf fonts)
 
 (defun default-font/family-map ()
@@ -78,79 +78,10 @@
       ((:sans-serif (:italic :bold)) . ,(try-ttf "DejaVuSans-BoldOblique.ttf"))
       ((:sans-serif :bold) .           ,(try-ttf "DejaVuSans-Bold.ttf")))))
 
-
-;;; `fc-match' implementation
-
-(defparameter *family-names*
-  '((:serif      . "Serif")
-    (:sans-serif . "Sans")
-    (:fix        . "Mono")))
-
-(defparameter *fontconfig-faces*
-  '((:roman . "")
-    (:bold  . "bold")
-    (:italic . "oblique")
-    ((:bold :italic) . "bold:oblique")))
-
-(defun parse-fontconfig-output (s)
-  (let* ((match-string (concatenate 'string (string #\Tab) "file:"))
-         (matching-line
-          (loop for l = (read-line s nil nil)
-                while l
-                if (= (mismatch l match-string) (length match-string))
-                   do (return l)))
-         (filename (when matching-line
-                     (probe-file
-                      (subseq matching-line
-                              (1+ (position #\" matching-line :from-end nil :test #'char=))
-                              (position #\" matching-line :from-end t   :test #'char=))))))
-    (when filename
-      (parse-namestring filename))))
-
-(defun warn-about-unset-font-path ()
-  (cerror "Proceed"
-          "~%~%NOTE:~%~
-* McCLIM was unable to configure itself automatically using
-  fontconfig. Therefore you must configure it manually.~%"))
-
-(defun find-fontconfig-font (font-fc-name)
-  (multiple-value-bind (output errors code)
-      (uiop:run-program (list "fc-match" "-v" font-fc-name)
-			:output :string :input nil :error-output nil
-			:force-shell t :ignore-error-status t)
-    (declare (ignore errors))
-    (if (not (zerop code))
-	(warn "~&fc-match failed with code ~D.~%" code)
-	(with-input-from-string (stream output)
-	  (parse-fontconfig-output stream)))))
-
-(defun fontconfig-name (family face) 
-  (format nil "~A:~A" family face))
-
-(defun build-font/family-map (&optional (families *family-names*))
-  (loop for family in families nconcing
-    (loop for face in *fontconfig-faces* 
-          as filename = (find-fontconfig-font (fontconfig-name (cdr family) (cdr face)))
-          when (null filename) do (return-from build-font/family-map nil)
-          collect
-          (cons (list (car family) (car face)) filename))))
-
-
 ;;; configure fonts
-
 (defun autoconfigure-fonts ()
   (invoke-with-truetype-path-restart
    (lambda ()
      (check-type *truetype-font-path* pathname)
-     (if-let ((map (or (support-map-p (default-font/family-map))
-                       (support-map-p (build-font/family-map)))))
-       (setf *families/faces* map)
-       (warn-about-unset-font-path)))))
-
-(defun support-map-p (font-map)
-  (handler-case
-      (when (every #'(lambda (font)
-                       (zpb-ttf:with-font-loader (ignored (cdr font)) t))
-                   font-map)
-        font-map)
-    (zpb-ttf::bad-magic () nil)))
+     (let ((map (default-font/family-map)))
+       (setf *families/faces* map)))))
