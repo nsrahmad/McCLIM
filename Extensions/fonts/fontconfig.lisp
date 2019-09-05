@@ -11,30 +11,10 @@
 ;;;    See toplevel file 'Copyright' for the copyright details.
 ;;;
 
-;;; This file contains our attempts to configure TTF paths and map
-;;; them to the predefined text styles. First we check if some default
-;;; paths can be used for that purpose, otherwise we shell out to
-;;; `fc-match'.
-
 (in-package :mcclim-truetype)
 
-
 ;;; fallback (path may be set in a restart by the user)
-(defparameter *truetype-font-path*
-  (find-if #'probe-file
-           '(#p"/usr/share/fonts/truetype/ttf-dejavu/"
-             #p"/usr/share/fonts/truetype/dejavu/"
-             #p"/usr/share/fonts/dejavu/"
-             #p"/usr/share/fonts/truetype/"
-             #p"/usr/share/fonts/TTF/"
-             #p"/usr/share/fonts/"
-             #p"/usr/local/share/fonts/dejavu/"
-             #p"/usr/X11R6/lib/X11/fonts/TTF/"
-             #p"/opt/X11/share/fonts/TTF/"
-             #p"/opt/X11/share/fonts/"
-             #p"~/.guix-profile/share/fonts/truetype/"
-             #p"/Library/Fonts/"
-             #p"C:/Windows/Fonts/")))
+(defparameter *truetype-font-path* (clime:asset :mcclim "ttf/"))
 
 ;;; Here are mappings for the DejaVu family of fonts, which are a
 ;;; derivative of Vera with improved unicode coverage.
@@ -50,8 +30,8 @@
     ((:fix :bold) . "DejaVuSansMono-Bold.ttf")
     ((:serif :roman) . "DejaVuSerif.ttf")
     ((:serif :italic) . "DejaVuSerif-Italic.ttf")
-    ((:serif (:bold :italic)) . "DejaVuSerif-BoldOblique.ttf")
-    ((:serif (:italic :bold)) . "DejaVuSerif-BoldOblique.ttf")
+    ((:serif (:bold :italic)) . "DejaVuSerif-BoldItalic.ttf")
+    ((:serif (:italic :bold)) . "DejaVuSerif-BoldItalic.ttf")
     ((:serif :bold) . "DejaVuSerif-Bold.ttf")
     ((:sans-serif :roman) . "DejaVuSans.ttf")
     ((:sans-serif :italic) . "DejaVuSans-Oblique.ttf")
@@ -77,11 +57,11 @@
            ;; probe for files existance - if they do not exist our
            ;; mapping is futile and we must try `fc-match'.
            (if-let ((path (probe-file
-                           (merge-pathnames name *truetype-font-path*))))
-             path
-             (progn
-               (warn "~s doesn't exist" (merge-pathnames name *truetype-font-path*))
-               (return-from default-font/family-map)))))
+			   (merge-pathnames name *truetype-font-path*))))
+	     path
+	     (progn
+	       (warn "~s doesn't exist" (merge-pathnames name *truetype-font-path*))
+	       (return-from default-font/family-map)))))
     `(((:fix :roman) .                 ,(try-ttf "DejaVuSansMono.ttf" ))
       ((:fix :italic) .                ,(try-ttf "DejaVuSansMono-Oblique.ttf"))
       ((:fix (:bold :italic)) .        ,(try-ttf "DejaVuSansMono-BoldOblique.ttf"))
