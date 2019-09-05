@@ -1979,7 +1979,9 @@
    ;; franz
    #:pointer-place-rubber-band-line*
    #:pointer-input-rectangle*
-   #:pointer-input-rectangle))
+   #:pointer-input-rectangle
+   ;; Assets
+   #:asset))
 
 ;;; Symbols that must be defined by a backend.
 ;;;

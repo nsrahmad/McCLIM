@@ -947,3 +947,42 @@ to the BREAK-STRATEGY whenever it assigns any meaning to to them."
   (if (typep sheet '(or top-level-sheet-mixin null))
       sheet
       (get-top-level-sheet (sheet-parent sheet))))
+
+;;; Asset support
+(defun clime:asset (asdf-system-designator asset-name
+		    &optional (asset-directory "Assets/"))
+  (flet ((relative-directory-p (pathname)
+	   ;; "tmp/" is allowed. "tmp" or "/tmp/" is NOT.
+	   (and (eq :relative (car (pathname-directory pathname)))
+		(not (or (pathname-name pathname)
+			 (pathname-type pathname)))))
+	 (merge-asset-dir-with-path (system-location)
+	   (merge-pathnames (merge-pathnames asset-name asset-directory)
+			    system-location)))
+    (assert (relative-directory-p asset-directory) (asset-directory)
+	    "~A is not a relative directory.~%~
+            Make sure it isn't ABSOLUTE and has a trailing /." asset-directory)
+    (asdf:clear-system asdf-system-designator)
+    (handler-case (merge-asset-dir-with-path
+		   (asdf:system-source-directory asdf-system-designator))
+      (ASDF/FIND-COMPONENT:MISSING-COMPONENT ()
+	(merge-asset-dir-with-path *default-pathname-defaults*)))))
+
+(setf (documentation 'clime:asset 'function)
+      "Returns a absolute pathname relative to either an ASDF-SYSTEM-DESIGNATOR
+(if it exists) or current working directory. It is callers resposibilty to
+make sure returned pathname actually exists on disk.
+
+ASDF-SYSTEM-DESIGNATOR names an ASDF system.  ASSET-NAME could be a file
+or a directory.  ASSET-DIRECTORY (by default \"Assets/\") is the directory
+in which assets are placed.
+
+Examples:
+> (asset :mcclim \"Foo.ttf\")
+=> #P\"/path-to-mcclim/Assets/Foo.ttf\"
+
+> (asset :mcclim \"test.png\" \"Images/\")
+=> #P\"/path-to-mcclim/Images/test.png\"
+
+> (asset :foo \"Font.ttf\") ; Suppose ASDF can't find FOO
+=> #p\"~/Assets/Font.ttf\"  ; ~/ is the directory lisp was started from.")

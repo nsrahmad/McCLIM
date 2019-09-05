@@ -1,5 +1,6 @@
 (defsystem #:clim-basic
-  :depends-on (#:clim-lisp
+  :depends-on (#:asdf
+	       #:clim-lisp
                #:spatial-trees
                (:version "flexichain" "1.5.1")
                #:bordeaux-threads
