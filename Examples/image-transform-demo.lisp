@@ -83,8 +83,7 @@
 
 (defmethod initialize-instance :after ((obj image-transform-demo) &key)
   (setf (image-transform-demo/image obj)
-        (clim:make-pattern-from-bitmap-file (merge-pathnames #p"images/kitten.jpg"
-                                                             (asdf:system-source-directory :clim-examples)))))
+        (clim:make-pattern-from-bitmap-file (clime:asset :clim-examples "kitten.jpg" "images/"))))
 
 (defun slider-updated-callback (gadget value)
   (declare (ignore gadget value))

@@ -93,9 +93,7 @@
 
 (defclass image ()
   ((image :initform (make-pattern-from-bitmap-file
-                     (merge-pathnames
-                      #p"images/glider.png"
-                      (asdf:system-source-directory :clim-examples)))
+                     (clime:asset :clim-examples "glider.png" "images/"))
           :reader pattern)
    (caption :initform nil :initarg :caption :reader caption)))
 

@@ -6,7 +6,7 @@
 (defparameter *render-image-height* 700)
 (defparameter *render-image-border-width* 5)
 
-(defparameter *testing-image-directory* (uiop/pathname:merge-pathnames* "Examples/images/" (asdf:system-source-directory (asdf:find-system :mcclim))))
+(defparameter *testing-image-directory* (clime:asset :clim-examples "" "images/"))
 (defparameter *testing-image-files* '("RGBXPLORER8.png"
                                       "White_Balance_RGB.png"
                                       "MicroGrayTest.png"))
